@@ -1,5 +1,9 @@
 # Changes
 
+## Unreleased
+
+- Fixed bundled server-plugin startup by deriving owned task identity from `PASEO_HOME` (or the home directory) and the plugin ID instead of `import.meta.url`.
+
 ## 1.1.0 - Agent And User Activity Holds
 
 - Removed the HTTP proxy, WebSocket observer, message allowlist, related settings/tests/docs and standalone review reports.

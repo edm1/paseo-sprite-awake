@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
 import type { PluginServerContext } from "@getpaseo/plugin/server";
 import { AgentTracker } from "./server/agent-tracker.ts";
 import { AgentRuntime } from "./server/agent-runtime.ts";
@@ -9,8 +8,10 @@ import { SpriteTasksApi, type SpriteDetection } from "./server/sprite-api.ts";
 import { UserActivity } from "./server/user-activity.ts";
 import { awakeSettings, readStatus, noteUserActivity, preferencesSchema, type AwakePreferences } from "./shared/settings.ts";
 
+const PLUGIN_ID = "paseo-sprite-awake";
+
 function ownedTaskName(): string {
-  const identity = `${process.env.PASEO_HOME ?? homedir()}\n${fileURLToPath(import.meta.url)}`;
+  const identity = `${process.env.PASEO_HOME ?? homedir()}\n${PLUGIN_ID}`;
   return `paseo-sprite-awake-${createHash("sha256").update(identity).digest("hex").slice(0, 20)}`;
 }
 

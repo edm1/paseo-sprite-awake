@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { homedir } from "node:os";
 import { test, type TestContext } from "node:test";
 import type { PluginServerContext } from "@getpaseo/plugin/server";
 import contribute from "../index.server.ts";
@@ -45,6 +47,43 @@ function setup(t: TestContext, initial: Promise<SettingsState> = Promise.resolve
     rpc: async (name: string, input: unknown = {}) => await handlers.get(name)?.(input, { paseo: sdk }) as Record<string, unknown>,
   };
 }
+
+test("owned task identity uses PASEO_HOME and the plugin ID", async (t) => {
+  const previousHome = process.env.PASEO_HOME;
+  const paseoHome = "/configured/paseo-home";
+  process.env.PASEO_HOME = paseoHome;
+  t.after(() => {
+    if (previousHome === undefined) delete process.env.PASEO_HOME;
+    else process.env.PASEO_HOME = previousHome;
+  });
+
+  const f = setup(t);
+  await settle();
+  f.hooks.get("agent.turn_started")?.({ agent: { id: "a" }, turnId: "t" }, { paseo: f.sdk });
+  await settle();
+
+  const identity = `${paseoHome}\npaseo-sprite-awake`;
+  const expectedName = `paseo-sprite-awake-${createHash("sha256").update(identity).digest("hex").slice(0, 20)}`;
+  assert.deepEqual(f.puts, [expectedName]);
+});
+
+test("owned task identity falls back to the home directory", async (t) => {
+  const previousHome = process.env.PASEO_HOME;
+  delete process.env.PASEO_HOME;
+  t.after(() => {
+    if (previousHome === undefined) delete process.env.PASEO_HOME;
+    else process.env.PASEO_HOME = previousHome;
+  });
+
+  const f = setup(t);
+  await settle();
+  f.hooks.get("agent.turn_started")?.({ agent: { id: "a" }, turnId: "t" }, { paseo: f.sdk });
+  await settle();
+
+  const identity = `${homedir()}\npaseo-sprite-awake`;
+  const expectedName = `paseo-sprite-awake-${createHash("sha256").update(identity).digest("hex").slice(0, 20)}`;
+  assert.deepEqual(f.puts, [expectedName]);
+});
 
 test("entrypoint status polling creates no activity task and avoids repeat scans", async (t) => {
   const f = setup(t);
