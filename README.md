@@ -1,47 +1,50 @@
 # Paseo Sprite Awake
 
-Keep a Fly.io Sprite awake during Paseo agent work or recent user activity, then allow sleep.
+A [Paseo](https://github.com/getpaseo/paseo) plugin that keeps your [Fly.io Sprite](https://sprites.dev) awake while agents are working or you're actively using Paseo.
+
+It prevents your Sprite from going to sleep mid-task, while still allowing it to suspend when idle.
 
 ## Install
 
-Targets Paseo 0.11.2; requires `>=0.11.2 <0.12.0`, a persistent daemon Sprite Service and the local Tasks API at `/.sprite/api.sock`. No Fly.io token is needed. The plugin does not change daemon ports or open a network listener.
+Requires Paseo 0.11.x (minimum 0.11.2) running as a persistent Sprite Service.
 
-```sh
-npm ci
-npm test
-npm run typecheck
-paseo plugin install /absolute/path/to/paseo-sprite-awake
+Install directly from GitHub:
+
+```bash
+paseo plugin install github:edm1/paseo-sprite-awake
 ```
 
-Enable the plugin, then open Settings > Plugins > Paseo Sprite Awake.
+Or enter `github:edm1/paseo-sprite-awake` under **Settings → Plugins** in Paseo.
 
-## Behaviour
+If the repository is private, your Sprite will need GitHub access.
 
-In Auto mode:
+Once installed, enable the plugin and open **Settings → Plugins → Paseo Sprite Awake** to configure it.
 
-- Working agents keep the Sprite awake, with a 60-second grace period after the last one stops.
-- Unanswered permission requests stop counting after 10 minutes. No timeout (stay awake) removes that limit.
-- Browser clicks, typing and scrolling, workspace/agent actions, mobile returns from background and the manual Keep awake action grant 10 minutes from the last interaction.
+## How it works
 
-Durations are configurable. Disabled prevents user activity holds. Always keeps the agent hold active; Off releases both tasks and clears remembered activity.
+- **Agent activity:** Keeps the Sprite awake while agents are working, with a 60-second grace period afterwards.
+- **User activity:** Keeps the Sprite awake for 10 minutes after interactions such as typing, clicking or returning to the app.
+- **Permission requests:** Stops keeping the Sprite awake after 10 minutes of unanswered permission requests, unless configured otherwise.
+- **Manual control:** Keep the Sprite awake when needed from Paseo.
 
-The agent and user activity holds use separate tasks. Each has a five-minute lease renewed every minute while needed. Activity expiry cannot release agent protection. Other Sprite activity may still prevent suspension.
+Choose between Auto, Always and Off modes. Timeouts can be adjusted in the plugin settings.
 
-Page loads, initial client mount, quiet connections, relay presence, polling and reconnects do not grant activity holds. For native browsing or setup, use Keep Sprite awake for the activity window in the Command Center, or Keep awake now in plugin settings.
+The plugin uses the Sprite's local Tasks API. No Fly.io API token or additional network ports are needed.
 
-## Check And Remove
+## Updates
 
-The settings screen reports confirmed tasks, the activity deadline, heartbeats and errors. On a live Sprite, check that sustained work renews its lease, activity expiry releases only the activity task, and Off releases both owned tasks. To remove:
+```bash
+paseo plugin update paseo-sprite-awake
+```
 
-```sh
-paseo plugin disable paseo-sprite-awake
+## Uninstall
+
+```bash
 paseo plugin remove paseo-sprite-awake
 ```
 
-## Limits
+## Notes
 
-Waking a suspended Sprite belongs to the deployment's separate connection Service, not this plugin. After restart, agent discovery waits for a lifecycle hook or status RPC to supply the SDK; the previous lease may expire before then. Activity deadlines reset on cold restart. Native touches and questions not exposed as permission state are not fully observed.
+The plugin manages sleep prevention, not waking a Sprite that's already suspended. That is handled separately by your Sprite's connection service.
 
-Local tests do not replace live Sprite/Paseo/Android verification.
-
-MIT licence.
+MIT licensed.
