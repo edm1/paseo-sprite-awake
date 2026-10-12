@@ -1,0 +1,8 @@
+{
+  "id": "paseo-sprite-awake",
+  "name": "Paseo Sprite Awake",
+  "description": "Keeps Fly.io Sprites awake for agent work and configurable user activity holds.",
+  "requirements": {
+    "paseo": ">=0.11.2 <0.12.0"
+  }
+}
